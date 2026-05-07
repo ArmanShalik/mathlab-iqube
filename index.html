@@ -556,8 +556,9 @@ input, select, textarea { font-family:var(--sans); }
 // ════════════════════════════════════════════════════════════════
 // CONFIG
 // ════════════════════════════════════════════════════════════════
-// ▼ REPLACE THIS WITH YOUR LOGO URL (hosted image, Google Drive share link, etc.)
-const LOGO_URL = 'https://github.com/ArmanShalik/mathlab-iqube/blob/main/logo.png';
+// ▼ YOUR LOGO: Upload logo.png to your GitHub repo root, then set this to:
+//   https://YOUR_USERNAME.github.io/YOUR_REPO_NAME/logo.png
+const LOGO_URL = 'YOUR_USERNAME.github.io/mathlab-iqube/logo.png';
 
 const A = {
   scriptUrl: localStorage.getItem('ml_url') || 'https://script.google.com/macros/s/AKfycby8qBZQEk20tBF68Bsqp7dTWJPrSyMmEQdAOLWNcVqAEbGMXjZVI_zjuZGEGv48e2amvA/exec',
@@ -745,11 +746,7 @@ async function route() {
 function navBar() {
   $('navbar').innerHTML = `<div class="nav-inner">
     <div class="nav-brand" onclick="navigate('/home')">
-      <div class="nav-mark">
-        ${LOGO_URL && !LOGO_URL.includes('YOUR_LOGO')
-          ? `<img src="${LOGO_URL}" alt="Logo" onerror="this.style.display='none'">`
-          : `<svg viewBox="0 0 24 24" fill="none"><path d="M4 6l8 6 8-6" stroke="#080b14" stroke-width="2.5" stroke-linecap="round"/><path d="M4 13l8 6 8-6" stroke="#080b14" stroke-width="2.5" stroke-linecap="round"/></svg>`}
-      </div>
+      <div class="nav-mark">${logoImg()}</div>
       <div class="nav-title">MathLab <span>IQube</span></div>
     </div>
     <div class="nav-links">
@@ -761,7 +758,8 @@ function navBar() {
     </div>
   </div>`;
 }
-function adminLogout() {
+function hasLogo() { return LOGO_URL && !LOGO_URL.includes('YOUR_USERNAME'); }
+function logoImg(cls='') { return hasLogo() ? `<img src="https://${LOGO_URL}" class="${cls}" alt="MathLab IQube" onerror="this.style.display='none'">` : `<svg viewBox="0 0 48 48" fill="none"><path d="M8 14l16 12 16-12" stroke="#c9a227" stroke-width="4.5" stroke-linecap="round"/><path d="M8 27l16 12 16-12" stroke="#c9a227" stroke-width="4.5" stroke-linecap="round"/></svg>`; }
   A.adminPw=''; sessionStorage.removeItem('ml_pw');
   navigate('/home'); toast('Logged out');
 }
@@ -770,7 +768,7 @@ function adminLogout() {
 // SETUP
 // ════════════════════════════════════════════════════════════════
 function showSetup() {
-  $('navbar').innerHTML=`<div class="nav-inner"><div class="nav-brand"><div class="nav-mark">${LOGO_URL&&!LOGO_URL.includes('YOUR_LOGO')?`<img src="${LOGO_URL}" alt="Logo" onerror="this.style.display='none'">`:`<svg viewBox="0 0 24 24" fill="none"><path d="M4 6l8 6 8-6" stroke="#080b14" stroke-width="2.5" stroke-linecap="round"/><path d="M4 13l8 6 8-6" stroke="#080b14" stroke-width="2.5" stroke-linecap="round"/></svg>`}</div><div class="nav-title">MathLab <span>IQube</span></div></div></div>`;
+  $('navbar').innerHTML=`<div class="nav-inner"><div class="nav-brand"><div class="nav-mark">${logoImg()}</div><div class="nav-title">MathLab <span>IQube</span></div></div></div>`;
   $('app').innerHTML=`<div class="main"><div class="setup-wrap">
     <div class="card">
       <div style="text-align:center;margin-bottom:2rem">
@@ -829,19 +827,10 @@ async function showHome() {
 
 function portalHeroHTML() {
   return `<div class="portal-hero">
-    <div class="portal-logo">
-      ${LOGO_URL && !LOGO_URL.includes('YOUR_LOGO')
-        ? `<img src="${LOGO_URL}" alt="MathLab IQube Logo" onerror="this.outerHTML='<svg viewBox=\\'0 0 48 48\\' fill=\\'none\\'><path d=\\'M8 14l16 12 16-12\\' stroke=\\'#c9a227\\' stroke-width=\\'4.5\\' stroke-linecap=\\'round\\'/><path d=\\'M8 27l16 12 16-12\\' stroke=\\'#c9a227\\' stroke-width=\\'4.5\\' stroke-linecap=\\'round\\'/></svg>'">`
-        : `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 14l16 12 16-12" stroke="#c9a227" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M8 27l16 12 16-12" stroke="#c9a227" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>`}
-    </div>
+    <div class="portal-logo">${logoImg()}</div>
     <div class="portal-title">MathLab <span>IQube</span></div>
     <div class="portal-sub">Arman Teaches Math · Quiz Platform</div>
-    <div class="portal-divider">
-      <span>A/L &nbsp;·&nbsp; 2027</span>
-    </div>
+    <div class="portal-divider"><span>A/L &nbsp;·&nbsp; 2027</span></div>
   </div>`;
 }
 
@@ -934,22 +923,26 @@ async function showQuizStart(id) {
     if(!d.success) throw new Error(d.error);
     A.s.currentQuiz=d.quiz; A.s.student=null;
     const q=d.quiz;
-    $('app').innerHTML=`<div class="main"><div style="max-width:580px;margin:0 auto">
+    $('app').innerHTML=`<div class="main"><div style="max-width:560px;margin:0 auto">
       <div class="card">
         <div class="qcard-badges" style="margin-bottom:1rem">
           ${levelChip(q.level)}
           <span class="chip chip-open">🌐 Open Quiz</span>
         </div>
-        <h2 class="t-serif t-white" style="font-size:1.5rem;margin-bottom:.5rem">${esc(q.title)}</h2>
-        <p style="color:var(--txt-m);margin-bottom:1.5rem;font-size:.9rem">${esc(q.description||'')}</p>
-        <div class="qcard-meta" style="font-size:.83rem;margin-bottom:1.5rem">
+        <h2 class="t-serif t-white" style="font-size:1.4rem;margin-bottom:.4rem">${esc(q.title)}</h2>
+        <p style="color:var(--txt-m);margin-bottom:1.2rem;font-size:.88rem">${esc(q.description||'')}</p>
+        <div class="qcard-meta" style="font-size:.82rem;margin-bottom:1.3rem">
           <span>📝 ${(q.questions||[]).length} questions</span>
-          ${q.timeLimit>0?`<span>⏱ ${q.timeLimit} minutes</span>`:''}
+          ${q.timeLimit>0?`<span>⏱ ${q.timeLimit} min</span>`:''}
           ${q.attemptLimit>0?`<span>🔁 Max ${q.attemptLimit} attempt${q.attemptLimit>1?'s':''}</span>`:''}
         </div>
+        <div class="alert alert-inf" style="margin-bottom:1.2rem;font-size:.82rem">
+          📋 Take this quiz freely. After you submit, enter your contact details to unlock the full answer discussion.
+        </div>
+        <div id="qs-err"></div>
         <div class="fg">
-          <label class="lbl">Your Name (optional)</label>
-          <input class="inp" id="st-name" type="text" placeholder="Enter your name" onkeypress="if(event.key==='Enter')beginOpen()">
+          <label class="lbl">Full Name *</label>
+          <input class="inp" id="st-name" type="text" placeholder="e.g. Kasun Perera">
         </div>
         <div style="display:flex;gap:.75rem">
           <button class="btn btn-ghost" onclick="navigate('/home')">← Back</button>
@@ -962,8 +955,10 @@ async function showQuizStart(id) {
   }
 }
 function beginOpen() {
-  const name=($('st-name')||{}).value?.trim()||'Anonymous';
-  A.s.student={index:'',name}; startTaking();
+  const name=($('st-name')||{}).value?.trim();
+  if(!name){render('qs-err','<div class="alert alert-err" style="margin-bottom:.8rem">Please enter your name to continue.</div>');return;}
+  A.s.student={index:'',name,email:'',phone:''};
+  startTaking();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1020,7 +1015,7 @@ async function verifyIdx(quizId) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// QUIZ TAKING
+// QUIZ TAKING + ANTI-CHEAT
 // ════════════════════════════════════════════════════════════════
 function startTaking() {
   const quiz=A.s.currentQuiz;
@@ -1029,6 +1024,7 @@ function startTaking() {
   A.s.answers=quiz.questions.map(q=>({questionId:q.id,answer:''}));
   A.s.startTime=new Date().toISOString();
   A.s.timeLeft=(quiz.timeLimit||0)*60;
+  A.s.violations=0;
   if(A.s.timerID){clearInterval(A.s.timerID);A.s.timerID=null;}
   if(quiz.timeLimit>0){
     A.s.timerID=setInterval(()=>{
@@ -1038,6 +1034,27 @@ function startTaking() {
       if(A.s.timeLeft<=0){clearInterval(A.s.timerID);A.s.timerID=null;doSubmit();}
     },1000);
   }
+  // Anti-cheat: tab switch detection
+  const handleBlur=()=>{
+    if(window.location.hash.includes('take')){
+      A.s.violations=(A.s.violations||0)+1;
+      const viol=A.s.violations;
+      const overlay=document.createElement('div');
+      overlay.id='ac-overlay';
+      overlay.style.cssText='position:fixed;inset:0;background:rgba(8,11,20,.97);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;text-align:center';
+      overlay.innerHTML=`<div style="font-size:2.5rem">${viol>=3?'🚫':'⚠️'}</div>
+        <div style="font-family:var(--serif);font-size:1.3rem;color:var(--white)">${viol>=3?'Quiz Auto-Submitted':'Tab Switch Detected'}</div>
+        <div style="color:var(--txt-m);font-size:.88rem;max-width:380px">${viol>=3
+          ? 'You switched tabs 3 times. Your quiz has been submitted automatically.'
+          : `Warning ${viol}/3: Switching tabs or windows during a quiz is not allowed. A third violation will auto-submit your quiz.`}</div>
+        ${viol<3?`<button onclick="document.getElementById('ac-overlay').remove()" style="margin-top:.5rem;padding:10px 24px;background:var(--gold);color:var(--bg);border:none;border-radius:6px;font-weight:700;cursor:pointer;font-family:var(--sans)">Return to Quiz</button>`:''}`;
+      document.body.appendChild(overlay);
+      if(viol>=3){setTimeout(doSubmit,2000);}
+    }
+  };
+  document.removeEventListener('visibilitychange',window._mlBlurHandler||null);
+  window._mlBlurHandler=()=>{if(document.hidden)handleBlur();};
+  document.addEventListener('visibilitychange',window._mlBlurHandler);
   navigate('/take');
   showTaking();
 }
@@ -1137,12 +1154,16 @@ function confirmSub(){
 }
 async function doSubmit(){
   if(A.s.timerID){clearInterval(A.s.timerID);A.s.timerID=null;}
+  // Remove anti-cheat listener
+  if(window._mlBlurHandler){document.removeEventListener('visibilitychange',window._mlBlurHandler);window._mlBlurHandler=null;}
   $('app').innerHTML=`<div class="main"><div class="loading"><div class="spin"></div><p>Submitting your quiz…</p></div></div>`;
   try {
     const d=await apiPost('submitAttempt',{
       quizId:A.s.currentQuiz.id,
       studentIndex:A.s.student?.index||'',
       studentName:A.s.student?.name||'Anonymous',
+      email:A.s.student?.email||'',
+      phone:A.s.student?.phone||'',
       answers:JSON.stringify(A.s.answers),
       startTime:A.s.startTime,
       endTime:new Date().toISOString()
@@ -1160,22 +1181,99 @@ async function doSubmit(){
 }
 
 // ════════════════════════════════════════════════════════════════
-// RESULTS
+// RESULTS — score shown immediately; discussion gated on contact info
 // ════════════════════════════════════════════════════════════════
 function showResults(){
   const res=A.s.lastRes;
   if(!res){navigate('/home');return;}
   const{score,total,percentage,gradedAnswers,quiz,student}=res;
   const pct=Number(percentage);
-  const isHigh=pct>=80;
+  const isHigh=pct>=80, isPerfect=pct===100;
   const grade=pct>=90?'Outstanding! 🏆':pct>=75?'Excellent! 🌟':pct>=60?'Good Job! 👍':pct>=40?'Keep Practicing 📖':'Needs Improvement 💪';
   const sigmaQuote=SIGMA_QUOTES[Math.floor(Math.random()*SIGMA_QUOTES.length)];
+  // Streak count
+  let maxStreak=0,curStreak=0;
+  (gradedAnswers||[]).forEach(a=>{if(a.correct){curStreak++;maxStreak=Math.max(maxStreak,curStreak);}else curStreak=0;});
+  const isOpen = quiz.category!=='MathLab';
+  const hasContact = student?.email || student?.phone;
+  // For open quizzes: show score + stats first, gate discussion behind contact form
+  // For MathLab: already verified, show everything
+  const showDiscussion = !isOpen || hasContact;
 
+  $('app').innerHTML=`<div class="main"><div style="max-width:740px;margin:0 auto">
+    <div class="results-hero">
+      <div class="score-ring" style="border-color:${pct>=80?'var(--green)':pct>=60?'var(--gold)':'var(--red)'}">
+        <div class="score-pct" style="color:${pct>=80?'var(--green)':pct>=60?'var(--gold-hi)':'var(--red)'}">${pct}%</div>
+        <div class="score-sub">Score</div>
+      </div>
+      <div class="score-grade">${grade}</div>
+      <div class="score-detail t-mono">${score} of ${total} correct${student?.name&&student.name!=='Anonymous'?' · '+esc(student.name):''}${student?.index?' ('+esc(student.index)+')':''}</div>
+      ${maxStreak>1?`<div style="margin-top:.6rem;font-family:var(--mono);font-size:.7rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase">🔥 Best streak: ${maxStreak} in a row</div>`:''}
+      ${!isHigh?`<div class="sigma-quote"><strong>Σ Sigma Mindset</strong>${esc(sigmaQuote)}</div>`:''}
+    </div>
+
+    <!-- Score stats bar -->
+    <div class="card" style="padding:1rem 1.4rem;margin-bottom:1.2rem;display:flex;gap:2rem;flex-wrap:wrap;justify-content:center">
+      <div style="text-align:center"><div style="font-family:var(--serif);font-size:1.6rem;color:var(--green)">${score}</div><div style="font-family:var(--mono);font-size:.62rem;color:var(--txt-m);text-transform:uppercase;letter-spacing:.08em">Correct</div></div>
+      <div style="text-align:center"><div style="font-family:var(--serif);font-size:1.6rem;color:var(--red)">${total-score}</div><div style="font-family:var(--mono);font-size:.62rem;color:var(--txt-m);text-transform:uppercase;letter-spacing:.08em">Wrong</div></div>
+      <div style="text-align:center"><div style="font-family:var(--serif);font-size:1.6rem;color:var(--gold-hi)">${maxStreak}</div><div style="font-family:var(--mono);font-size:.62rem;color:var(--txt-m);text-transform:uppercase;letter-spacing:.08em">Best Streak</div></div>
+      <div style="text-align:center"><div style="font-family:var(--serif);font-size:1.6rem;color:var(--blue)">${(gradedAnswers||[]).filter(a=>!a.answer).length}</div><div style="font-family:var(--mono);font-size:.62rem;color:var(--txt-m);text-transform:uppercase;letter-spacing:.08em">Skipped</div></div>
+    </div>
+
+    ${showDiscussion
+      ? `<div class="card" id="review-section">
+          <div class="section-title">Answer Discussion</div>
+          <div id="review-body"><div class="loading" style="min-height:80px"><div class="spin"></div></div></div>
+        </div>`
+      : `<div class="card" id="lead-gate" style="text-align:center;padding:2rem">
+          <div style="font-size:2.5rem;margin-bottom:.8rem">🔓</div>
+          <h3 class="t-serif t-white" style="font-size:1.2rem;margin-bottom:.5rem">Unlock Answer Discussion</h3>
+          <p style="color:var(--txt-m);font-size:.88rem;margin-bottom:1.5rem">See every answer explained with full discussion. Enter your contact details to unlock.</p>
+          <div id="lead-err"></div>
+          <div style="max-width:380px;margin:0 auto;text-align:left">
+            <div class="fg">
+              <label class="lbl">WhatsApp / Phone Number *</label>
+              <input class="inp" id="lead-phone" type="tel" placeholder="e.g. 0771234567">
+            </div>
+            <div class="fg">
+              <label class="lbl">Email Address</label>
+              <input class="inp" id="lead-email" type="email" placeholder="Optional but recommended">
+            </div>
+          </div>
+          <button class="btn btn-gold" style="margin-top:.5rem" onclick="submitLead()">Unlock Discussion →</button>
+          <p style="color:var(--txt-m);font-size:.72rem;margin-top:.8rem;font-family:var(--mono)">Your details are used only for Arman Teaches Math updates.</p>
+        </div>`}
+
+    <div style="text-align:center;margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="navigate('/home')">← All Quizzes</button>
+      <button class="btn btn-ghost" onclick="shareResult(${pct},'${esc(quiz.title)}')">📤 Share Result</button>
+      <button class="btn btn-gold" onclick="navigate('/${quiz.category==='MathLab'?'mathlab':'quiz'}/${esc(quiz.id)}')">Retake Quiz</button>
+    </div>
+  </div></div>`;
+
+  // If discussion is unlocked, render it
+  if(showDiscussion) renderReview(gradedAnswers, quiz);
+
+  // Celebration
+  if(isHigh){
+    setTimeout(()=>{
+      if(typeof confetti!=='undefined'){
+        const colors=isPerfect?['#f0c040','#fff','#3ecf8e','#4e8fff']:['#c9a227','#f0c040','#fff','#3ecf8e'];
+        confetti({particleCount:isPerfect?300:180,spread:110,origin:{y:.5},colors});
+        if(isPerfect)setTimeout(()=>confetti({particleCount:150,angle:60,spread:80,origin:{x:0},colors}),400);
+        if(isPerfect)setTimeout(()=>confetti({particleCount:150,angle:120,spread:80,origin:{x:1},colors}),600);
+      }
+    },400);
+  }
+}
+
+function renderReview(gradedAnswers, quiz){
+  const body=$('review-body'); if(!body)return;
   const review=(gradedAnswers||[]).map((a,i)=>{
     const q=quiz.questions[i]; if(!q)return'';
     const opts=q.options||[];
     const ua=q.answerType==='mcq'?(opts[parseInt(a.answer)]??'(no answer)'):(a.answer||'(no answer)');
-    const ca=q.answerType==='mcq'?(opts[parseInt(a.correctAnswer)]??''):(a.correctAnswer||'');
+    const ca=q.answerType==='mcq'?(opts[parseInt(a.correctAnswer ?? '')]??''):(a.correctAnswer??'');
     const exp=a.explanation||{};
     const expHtml=(exp.text||exp.image||exp.youtube)?`<div class="exp-box">
       <strong>💡 Explanation</strong>
@@ -1189,60 +1287,50 @@ function showResults(){
       <div class="res-stat ${a.correct?'res-ok':'res-ng'}">${a.correct?'✓ Correct':'✗ Incorrect'}</div>
       <div style="font-size:.85rem;color:var(--txt-m)">
         Your answer: <strong style="color:var(--txt)" id="res_ua_${i}"></strong>
-        ${!a.correct&&ca?` &nbsp;·&nbsp; Correct: <strong style="color:var(--green)" id="res_ca_${i}"></strong>`:''}
+        ${!a.correct&&String(ca)?` &nbsp;·&nbsp; Correct: <strong style="color:var(--green)" id="res_ca_${i}"></strong>`:''}
       </div>
       ${expHtml}
     </div>`;
   }).join('');
-
-  $('app').innerHTML=`<div class="main"><div style="max-width:740px;margin:0 auto">
-    <div class="results-hero">
-      <div class="score-ring">
-        <div class="score-pct">${pct}%</div>
-        <div class="score-sub">Score</div>
-      </div>
-      <div class="score-grade">${grade}</div>
-      <div class="score-detail t-mono">${score} of ${total} correct${student?.name&&student.name!=='Anonymous'?' · '+esc(student.name):''}${student?.index?' ('+esc(student.index)+')':''}</div>
-      ${!isHigh?`<div class="sigma-quote"><strong>Σ Sigma Mindset</strong>${esc(sigmaQuote)}</div>`:''}
-    </div>
-    <div class="card">
-      <div class="section-title">Answer Review</div>
-      ${review||'<p class="t-muted">No review data.</p>'}
-    </div>
-    <div style="text-align:center;margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="navigate('/home')">← All Quizzes</button>
-      <button class="btn btn-gold" onclick="navigate('/quiz/${esc(quiz.id)}')">Retake Quiz</button>
-    </div>
-  </div></div>`;
-
-  // Render LaTeX in results
+  body.innerHTML=review||'<p class="t-muted">No review data.</p>';
   whenKatex(()=>{
     (gradedAnswers||[]).forEach((a,i)=>{
       const q=quiz.questions[i]; if(!q)return;
       const el=$(`res_q_${i}`); if(el) el.innerHTML=renderMath(q.questionText);
       const opts=q.options||[];
-      const uaEl=$(`res_ua_${i}`);
-      const caEl=$(`res_ca_${i}`);
+      const uaEl=$(`res_ua_${i}`), caEl=$(`res_ca_${i}`);
       const ua=q.answerType==='mcq'?(opts[parseInt(a.answer)]??'(no answer)'):(a.answer||'(no answer)');
-      const ca=q.answerType==='mcq'?(opts[parseInt(a.correctAnswer)]??''):(a.correctAnswer||'');
+      const ca=q.answerType==='mcq'?(opts[parseInt(a.correctAnswer??'')]??''):(a.correctAnswer??'');
       if(uaEl) uaEl.innerHTML=renderMath(String(ua));
       if(caEl) caEl.innerHTML=renderMath(String(ca));
-      const expEl=$(`exp_text_${i}`);
-      const exp=a.explanation||{};
+      const expEl=$(`exp_text_${i}`), exp=a.explanation||{};
       if(expEl&&exp.text) expEl.innerHTML=renderMath(exp.text);
     });
   });
-
-  // Celebration or motivational
-  if(isHigh){
-    setTimeout(()=>{
-      if(typeof confetti!=='undefined'){
-        confetti({particleCount:180,spread:100,origin:{y:.5},colors:['#c9a227','#f0c040','#fff','#3ecf8e']});
-        setTimeout(()=>confetti({particleCount:80,spread:60,origin:{y:.4},colors:['#f0c040','#fff']}),600);
-      }
-    },400);
-  }
 }
+
+async function submitLead(){
+  const phone=($('lead-phone')||{}).value?.trim();
+  const email=($('lead-email')||{}).value?.trim();
+  if(!phone&&!email){render('lead-err','<div class="alert alert-err" style="margin-bottom:.8rem">Please enter your WhatsApp number to unlock.</div>');return;}
+  // Store in session
+  if(A.s.student){A.s.student.phone=phone;A.s.student.email=email;}
+  A.s.lastRes.student={...A.s.lastRes.student,phone,email};
+  // Save contact info to backend by re-submitting just the contact (cheap API call)
+  // We update the student record in-session only; Sheets already has the attempt row
+  // Show discussion
+  const gate=$('lead-gate');
+  if(gate){gate.outerHTML=`<div class="card" id="review-section"><div class="section-title">Answer Discussion</div><div id="review-body"><div class="loading" style="min-height:80px"><div class="spin"></div></div></div></div>`;}
+  renderReview(A.s.lastRes.gradedAnswers, A.s.lastRes.quiz);
+  toast('Discussion unlocked! 🎉','ok');
+}
+
+function shareResult(pct, title){
+  const text=`I scored ${pct}% on "${title}" — MathLab IQube by Arman Teaches Math! 🎓`;
+  if(navigator.share){navigator.share({title:'MathLab IQube Result',text,url:window.location.origin+window.location.pathname}).catch(()=>{});}
+  else{navigator.clipboard.writeText(text).then(()=>toast('Result copied to clipboard!','ok')).catch(()=>toast('Share: '+text));}
+}
+
 
 // ════════════════════════════════════════════════════════════════
 // ADMIN LOGIN
@@ -1284,13 +1372,15 @@ async function doLogin(){
 async function showDash(){
   $('app').innerHTML=`<div class="main"><div class="loading"><div class="spin"></div></div></div>`;
   try{
-    const [dQuizzes, dAll] = await Promise.all([
+    const [dQuizzes, dAll, dWeekly] = await Promise.all([
       apiPost('getAdminQuizzes',{password:A.adminPw}),
-      apiPost('getAllAnalytics',{password:A.adminPw})
+      apiPost('getAllAnalytics',{password:A.adminPw}),
+      apiPost('getWeeklyStats',{password:A.adminPw})
     ]);
     if(!dQuizzes.success) throw new Error(dQuizzes.error||'Unauthorized');
     A.s.adminQuizzes = dQuizzes.quizzes||[];
-    A.s.dashStats    = dAll.stats||{totalAttempts:0,avgPct:0,totalStudents:0};
+    A.s.dashStats    = dAll.stats||{};
+    A.s.weeklyData   = dWeekly;
     paintDash();
   }catch(e){
     if(e.message.includes('Unauthorized')){A.adminPw='';sessionStorage.removeItem('ml_pw');navigate('/admin/login');return;}
@@ -1298,22 +1388,46 @@ async function showDash(){
   }
 }
 
+function weeklyChart(days){
+  if(!days||!days.length) return '';
+  const max=Math.max(...days.map(d=>d.count),1);
+  const W=310, H=80, pad=8, bw=Math.floor((W-pad*2)/days.length)-4;
+  const bars=days.map((d,i)=>{
+    const bh=Math.max(3,Math.round((d.count/max)*(H-20)));
+    const x=pad+i*(bw+4);
+    const y=H-14-bh;
+    return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="var(--gold)" rx="2" opacity=".85"/>
+      <text x="${x+bw/2}" y="${H-3}" text-anchor="middle" font-size="8" fill="var(--txt-m)" font-family="Space Mono">${d.day}</text>
+      ${d.count>0?`<text x="${x+bw/2}" y="${y-3}" text-anchor="middle" font-size="8" fill="var(--gold-hi)" font-family="Space Mono">${d.count}</text>`:''}`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${bars}</svg>`;
+}
+
 function paintDash(){
-  const qs   = A.s.adminQuizzes;
-  const stats= A.s.dashStats||{};
+  const qs    = A.s.adminQuizzes;
+  const stats = A.s.dashStats||{};
+  const wd    = A.s.weeklyData||{};
+  const weekly= wd.weekly||[];
+  const topQs = wd.topQuizzes||[];
+  const recent= wd.recent||[];
+
   const activeQs  = qs.filter(q=>String(q.isActive)==='true').length;
   const totalQs   = qs.length;
   const byLevel   = {Easy:0,Medium:0,Advanced:0,Olympiad:0};
   qs.forEach(q=>{ if(byLevel[q.level]!==undefined) byLevel[q.level]++; });
+  const weekTotal = weekly.reduce((s,d)=>s+d.count,0);
 
   const tableRows=qs.map(q=>`<tr>
-    <td><strong style="color:var(--white)">${esc(q.title)}</strong></td>
+    <td>
+      <div><strong style="color:var(--white);font-size:.88rem">${esc(q.title)}</strong></div>
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--txt-m);margin-top:1px">${q.attemptCount||0} attempts</div>
+    </td>
     <td>${levelChip(q.level)}</td>
     <td><span class="chip ${q.category==='MathLab'?'chip-mathlab':'chip-open'}" style="border-radius:5px">${esc(q.category||'Open')}</span></td>
     <td><span class="tag ${String(q.isActive)==='true'?'tag-on':'tag-off'}">${String(q.isActive)==='true'?'Active':'Off'}</span></td>
-    <td class="t-mono hide-m" style="font-size:.8rem">${q.timeLimit>0?q.timeLimit+' min':'—'}</td>
+    <td class="hide-m t-mono" style="font-size:.78rem">${q.timeLimit>0?q.timeLimit+' min':'—'}</td>
     <td>
-      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+      <div style="display:flex;gap:.35rem;flex-wrap:wrap">
         <button class="btn btn-ghost btn-xs" onclick="navigate('/admin/quiz/${esc(q.id)}/edit')">Edit</button>
         <button class="btn btn-ghost btn-xs" onclick="navigate('/admin/quiz/${esc(q.id)}/analytics')">📊</button>
         <button class="btn btn-danger btn-xs" onclick="delQuiz('${esc(q.id)}','${esc(q.title)}')">✕</button>
@@ -1321,14 +1435,27 @@ function paintDash(){
     </td>
   </tr>`).join('');
 
-  const levelBar = Object.entries(byLevel).map(([k,v])=>`
-    <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.5rem">
-      <span style="min-width:80px;font-family:var(--mono);font-size:.7rem;color:var(--txt-m);text-transform:uppercase;letter-spacing:.06em">${k}</span>
-      <div style="flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">
-        <div style="height:100%;width:${totalQs>0?Math.round(v/totalQs*100):0}%;background:${levelColor(k)};border-radius:3px;transition:.4s"></div>
+  const levelBars=Object.entries(byLevel).map(([k,v])=>`
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">
+      <span style="min-width:74px;font-family:var(--mono);font-size:.65rem;color:var(--txt-m);text-transform:uppercase;letter-spacing:.06em">${k}</span>
+      <div style="flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${totalQs>0?Math.round(v/totalQs*100):0}%;background:${levelColor(k)};border-radius:2px;transition:.4s"></div>
       </div>
-      <span style="min-width:18px;font-family:var(--mono);font-size:.8rem;color:var(--txt-m)">${v}</span>
+      <span style="min-width:16px;font-family:var(--mono);font-size:.75rem;color:var(--txt-m)">${v}</span>
     </div>`).join('');
+
+  const topQRows=topQs.map((q,i)=>`<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--bdr)">
+    <div style="font-family:var(--mono);font-size:.7rem;color:var(--gold-lo);min-width:18px">#${i+1}</div>
+    <div style="flex:1;font-size:.84rem;color:var(--txt)">${esc(q.title)}</div>
+    <div style="font-family:var(--mono);font-size:.75rem;color:var(--gold)">${q.count}</div>
+  </div>`).join('');
+
+  const recentRows=recent.map(r=>`<tr>
+    <td style="font-size:.83rem">${esc(r.studentName)}</td>
+    <td style="font-size:.78rem;color:var(--txt-m)">${esc(r.quizTitle)}</td>
+    <td><span style="color:${Number(r.percentage)>=50?'var(--green)':'var(--red)'};font-family:var(--mono);font-size:.82rem;font-weight:700">${r.percentage}%</span></td>
+    <td class="hide-m t-mono" style="font-size:.7rem;color:var(--txt-m)">${r.startTime?new Date(r.startTime).toLocaleDateString():'-'}</td>
+  </tr>`).join('');
 
   $('app').innerHTML=`<div class="main">
     <div class="dash-header">
@@ -1336,59 +1463,103 @@ function paintDash(){
         <div class="t-label" style="margin-bottom:.3rem">Control Panel</div>
         <div class="dash-title">MathLab <span>IQube</span> Admin</div>
       </div>
-      <div style="display:flex;gap:.7rem;flex-wrap:wrap">
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" onclick="navigate('/home')">View Site ↗</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadDB('all')">⬇ All Data</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadDB('open')">⬇ Open Leads</button>
         <button class="btn btn-gold" onclick="navigate('/admin/quiz/new')">+ New Quiz</button>
       </div>
     </div>
 
-    <!-- KPIs -->
-    <div class="kpi-grid">
-      <div class="kpi kpi-gold">
-        <div class="kpi-val">${totalQs}</div>
-        <div class="kpi-lbl">Total Quizzes</div>
-        <div class="kpi-sub">${activeQs} active</div>
+    <!-- KPIs row 1 -->
+    <div class="kpi-grid" style="margin-bottom:1rem">
+      <div class="kpi kpi-gold"><div class="kpi-val">${totalQs}</div><div class="kpi-lbl">Total Quizzes</div><div class="kpi-sub">${activeQs} active</div></div>
+      <div class="kpi kpi-green"><div class="kpi-val" style="color:var(--green)">${stats.totalAttempts||0}</div><div class="kpi-lbl">All-time Attempts</div></div>
+      <div class="kpi kpi-blue"><div class="kpi-val" style="color:var(--blue)">${stats.avgPct||0}%</div><div class="kpi-lbl">Platform Avg Score</div></div>
+      <div class="kpi kpi-purple"><div class="kpi-val" style="color:var(--purple)">${stats.passRate||0}%</div><div class="kpi-lbl">Pass Rate (≥50%)</div></div>
+      <div class="kpi kpi-gold"><div class="kpi-val">${stats.totalStudents||0}</div><div class="kpi-lbl">Enrolled Students</div></div>
+      <div class="kpi kpi-green"><div class="kpi-val" style="color:var(--green)">${stats.totalLeads||0}</div><div class="kpi-lbl">Open Quiz Leads</div></div>
+      <div class="kpi kpi-blue"><div class="kpi-val" style="color:var(--blue)">${weekTotal}</div><div class="kpi-lbl">This Week</div></div>
+      <div class="kpi kpi-purple"><div class="kpi-val" style="color:var(--purple)">${stats.activeQuizzes||0}</div><div class="kpi-lbl">Live Quizzes</div></div>
+    </div>
+
+    <!-- Row 1: Weekly chart + Top quizzes -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem" class="dash-grid-2">
+      <div class="card">
+        <div class="section-title">Weekly Activity (Last 7 Days)</div>
+        ${weeklyChart(weekly)}
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:.68rem;color:var(--txt-m);margin-top:.6rem">
+          <span>${weekTotal} total this week</span>
+          <span>${weekly.length>0?Math.max(...weekly.map(d=>d.count)):0} peak day</span>
+        </div>
       </div>
-      <div class="kpi kpi-green">
-        <div class="kpi-val" style="color:var(--green)">${stats.totalAttempts||0}</div>
-        <div class="kpi-lbl">Total Attempts</div>
-      </div>
-      <div class="kpi kpi-blue">
-        <div class="kpi-val" style="color:var(--blue)">${stats.avgPct||0}%</div>
-        <div class="kpi-lbl">Platform Avg</div>
-      </div>
-      <div class="kpi kpi-purple">
-        <div class="kpi-val" style="color:var(--purple)">${stats.totalStudents||0}</div>
-        <div class="kpi-lbl">Enrolled Students</div>
+      <div class="card">
+        <div class="section-title">Top Quizzes by Attempts</div>
+        ${topQRows||'<div class="t-muted" style="font-size:.85rem">No data yet</div>'}
+        <div style="margin-top:1rem">
+          <div class="section-title">Quiz Levels</div>
+          ${levelBars}
+        </div>
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 280px;gap:1.4rem;margin-bottom:2rem" class="dash-grid-2">
-      <!-- Quiz Table -->
-      <div class="card" style="padding:0;overflow:hidden">
-        <div style="padding:1.2rem 1.5rem;border-bottom:1px solid var(--bdr)">
-          <div class="section-title" style="margin:0">All Quizzes</div>
-        </div>
-        ${!qs.length
-          ?`<div class="empty"><div class="empty-ico">📋</div><h3>No quizzes yet</h3></div>`
-          :`<div style="overflow-x:auto"><table class="atbl">
-              <thead><tr><th>Title</th><th>Level</th><th>Type</th><th>Status</th><th class="hide-m">Time</th><th>Actions</th></tr></thead>
-              <tbody>${tableRows}</tbody>
-            </table></div>`}
+    <!-- Row 2: All quizzes table -->
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:1.2rem">
+      <div style="padding:1.1rem 1.5rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between">
+        <div class="section-title" style="margin:0">All Quizzes</div>
+        <button class="btn btn-gold btn-sm" onclick="navigate('/admin/quiz/new')">+ New Quiz</button>
       </div>
-      <!-- Level distribution -->
+      ${!qs.length
+        ?`<div class="empty"><div class="empty-ico">📋</div><h3>No quizzes yet</h3></div>`
+        :`<div style="overflow-x:auto"><table class="atbl">
+            <thead><tr><th>Title</th><th>Level</th><th>Type</th><th>Status</th><th class="hide-m">Time</th><th>Actions</th></tr></thead>
+            <tbody>${tableRows}</tbody>
+          </table></div>`}
+    </div>
+
+    <!-- Row 3: Recent activity + download actions -->
+    <div style="display:grid;grid-template-columns:1fr 260px;gap:1.2rem" class="dash-grid-2">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:1.1rem 1.5rem;border-bottom:1px solid var(--bdr)">
+          <div class="section-title" style="margin:0">Recent Attempts</div>
+        </div>
+        ${!recent.length
+          ?`<div class="empty" style="padding:2rem"><div class="empty-ico" style="font-size:1.5rem">📊</div><h3>No attempts yet</h3></div>`
+          :`<div style="overflow-x:auto"><table class="atbl"><thead><tr><th>Student</th><th>Quiz</th><th>Score</th><th class="hide-m">Date</th></tr></thead><tbody>${recentRows}</tbody></table></div>`}
+      </div>
       <div class="card">
-        <div class="section-title">By Level</div>
-        ${levelBar}
+        <div class="section-title">Download Data</div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <button class="btn btn-ghost btn-sm" onclick="downloadDB('all')">⬇ All Attempts (CSV)</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadDB('open')">⬇ Open Quiz Leads</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadDB('mathlab')">⬇ MathLab Results</button>
+        </div>
         <hr style="border:none;border-top:1px solid var(--bdr);margin:1rem 0">
-        <div class="section-title">Quick Actions</div>
-        <div style="display:flex;flex-direction:column;gap:.5rem">
-          <button class="btn btn-gold btn-sm btn-full" onclick="navigate('/admin/quiz/new')">+ Create Quiz</button>
-          <button class="btn btn-ghost btn-sm btn-full" onclick="navigate('/setup')">⚙ Config URL</button>
+        <div class="section-title">Admin</div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <button class="btn btn-ghost btn-sm" onclick="navigate('/setup')">⚙ Config URL</button>
+          <button class="btn btn-ghost btn-sm" onclick="showDash()">↻ Refresh</button>
         </div>
       </div>
     </div>
   </div>`;
+}
+
+async function downloadDB(category){
+  try{
+    toast('Preparing download…');
+    const d=await apiPost('getFullDatabase',{password:A.adminPw,category});
+    if(!d.success)throw new Error(d.error);
+    if(!d.data.length){toast('No data found for this filter','err');return;}
+    const keys=Object.keys(d.data[0]);
+    const csv=[keys.join(','),...d.data.map(r=>keys.map(k=>`"${String(r[k]??'').replace(/"/g,'""')}"`).join(','))].join('\n');
+    const blob=new Blob([csv],{type:'text/csv'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`mathlab_${category}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();URL.revokeObjectURL(url);
+    toast(`Downloaded ${d.data.length} records`,'ok');
+  }catch(e){toast('Download failed: '+e.message,'err');}
 }
 
 async function delQuiz(id,title){
@@ -1399,6 +1570,7 @@ async function delQuiz(id,title){
     else throw new Error(d.error);
   }catch(e){toast('Error: '+e.message,'err');}
 }
+
 
 // ════════════════════════════════════════════════════════════════
 // QUIZ EDITOR
