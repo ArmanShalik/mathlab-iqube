@@ -540,6 +540,34 @@ input, select, textarea { font-family:var(--sans); }
   .kpi-grid { grid-template-columns:1fr 1fr; }
   .nav-inner { padding:0 1rem; }
 }
+
+/* ── Share Card Modal ── */
+.share-modal-bg {
+  position:fixed; inset:0; z-index:8000;
+  background:rgba(4,6,12,.88); backdrop-filter:blur(12px);
+  display:flex; align-items:center; justify-content:center; padding:1.5rem;
+  animation:smFadeIn .25s ease;
+}
+@keyframes smFadeIn { from{opacity:0} to{opacity:1} }
+
+.share-modal {
+  background:var(--bg2); border:1px solid var(--bdr2);
+  border-radius:16px; padding:1.8rem;
+  max-width:480px; width:100%;
+  box-shadow:0 24px 80px rgba(0,0,0,.6);
+  animation:smSlideUp .3s cubic-bezier(.16,1,.3,1);
+}
+@keyframes smSlideUp { from{transform:translateY(28px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.share-canvas-wrap {
+  border-radius:10px; overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
+  margin-bottom:1.2rem; position:relative;
+}
+.share-canvas-wrap canvas { display:block; width:100%; height:auto; }
+
+.share-actions { display:flex; gap:.75rem; flex-wrap:wrap; }
+.share-actions .btn { flex:1; min-width:120px; }
 </style>
 </head>
 <body>
@@ -1319,11 +1347,360 @@ async function submitLead(){
   toast('Discussion unlocked! 🎉','ok');
 }
 
-function shareResult(pct, title){
-  const text=`I scored ${pct}% on "${title}" — MathLab IQube by Arman Teaches Math! 🎓`;
-  if(navigator.share){navigator.share({title:'MathLab IQube Result',text,url:window.location.origin+window.location.pathname}).catch(()=>{});}
-  else{navigator.clipboard.writeText(text).then(()=>toast('Result copied to clipboard!','ok')).catch(()=>toast('Share: '+text));}
+// ════════════════════════════════════════════════════════════════
+// SHARE RESULT — Canvas card generator
+// ════════════════════════════════════════════════════════════════
+function shareResult(pct, quizTitle) {
+  const res = A.s.lastRes;
+  const studentName = res?.student?.name || '';
+  const score       = res?.score ?? '—';
+  const total       = res?.total ?? '—';
+  const level       = res?.quiz?.level || '';
+  const isHigh      = Number(pct) >= 80;
+  const isPerfect   = Number(pct) === 100;
+
+  const grade =
+    pct >= 90 ? 'Outstanding' :
+    pct >= 75 ? 'Excellent'   :
+    pct >= 60 ? 'Good Job'    :
+    pct >= 40 ? 'Keep Practicing' : 'Needs Improvement';
+
+  const sigmaLine =
+    pct >= 90 ? 'Sigma energy. Nothing less.' :
+    pct >= 75 ? 'The grind is paying off.' :
+    pct >= 60 ? 'Solid work. Keep climbing.' :
+    pct >= 40 ? 'Every mistake is a lesson.' :
+                'The comeback is always stronger.';
+
+  // ── Build canvas ──────────────────────────────────────────────
+  const W = 900, H = 500;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#080b14';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,.03)';
+  ctx.lineWidth = 1;
+  const grid = 52;
+  for (let x = 0; x <= W; x += grid) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y <= H; y += grid) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // Glowing radial behind score ring
+  const glowX = W * 0.72, glowY = H * 0.5;
+  const grd = ctx.createRadialGradient(glowX, glowY, 10, glowX, glowY, 240);
+  grd.addColorStop(0, isHigh ? 'rgba(62,207,142,.18)' : 'rgba(201,162,39,.18)');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // Top accent bar
+  const barGrd = ctx.createLinearGradient(0,0,W,0);
+  barGrd.addColorStop(0, '#7a621a');
+  barGrd.addColorStop(0.5, '#f0c040');
+  barGrd.addColorStop(1, '#7a621a');
+  ctx.fillStyle = barGrd;
+  ctx.fillRect(0, 0, W, 3);
+
+  // Left accent bar (thin, full height)
+  ctx.fillStyle = isHigh ? '#3ecf8e' : '#c9a227';
+  ctx.fillRect(0, 3, 3, H - 3);
+
+  // ── Logo mark (chevron SVG drawn on canvas) ───────────────────
+  const lx = 52, ly = 42, ls = 32;
+  ctx.save();
+  ctx.translate(lx, ly);
+  // Gold background square
+  ctx.fillStyle = '#c9a227';
+  ctx.beginPath();
+  roundRect(ctx, 0, 0, ls, ls, 7);
+  ctx.fill();
+  // Chevron 1
+  ctx.strokeStyle = '#080b14';
+  ctx.lineWidth = 3.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(ls*0.17, ls*0.29);
+  ctx.lineTo(ls*0.5,  ls*0.54);
+  ctx.lineTo(ls*0.83, ls*0.29);
+  ctx.stroke();
+  // Chevron 2
+  ctx.beginPath();
+  ctx.moveTo(ls*0.17, ls*0.50);
+  ctx.lineTo(ls*0.5,  ls*0.75);
+  ctx.lineTo(ls*0.83, ls*0.50);
+  ctx.stroke();
+  ctx.restore();
+
+  // Brand name
+  ctx.fillStyle = '#f0f4ff';
+  ctx.font = `700 17px "Space Grotesk", sans-serif`;
+  ctx.fillText('MathLab IQube', lx + ls + 10, ly + 12);
+  ctx.fillStyle = '#4e6280';
+  ctx.font = `400 11px "Space Mono", monospace`;
+  ctx.fillText('ARMAN TEACHES MATH', lx + ls + 10, ly + 27);
+
+  // ── Level chip top right ──────────────────────────────────────
+  if (level) {
+    const levelColors = {Easy:'#3ecf8e',Medium:'#4e8fff',Advanced:'#f97316',Olympiad:'#a855f7'};
+    const lc = levelColors[level] || '#c9a227';
+    ctx.fillStyle = hexToRgba(lc, 0.15);
+    const chipW = 100, chipH = 26, chipX = W - chipW - 48, chipY = ly - 4;
+    roundRect(ctx, chipX, chipY, chipW, chipH, 13);
+    ctx.fill();
+    ctx.strokeStyle = hexToRgba(lc, 0.4);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = lc;
+    ctx.font = `700 11px "Space Mono", monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText(level.toUpperCase(), chipX + chipW / 2, chipY + 17);
+    ctx.textAlign = 'left';
+  }
+
+  // ── LEFT SIDE — text content ──────────────────────────────────
+  const tx = 52, ty = 130;
+
+  // Quiz title
+  ctx.fillStyle = '#4e6280';
+  ctx.font = `400 11px "Space Mono", monospace`;
+  ctx.letterSpacing = '2px';
+  ctx.fillText('QUIZ RESULT', tx, ty);
+
+  const titleLines = wrapText(ctx, quizTitle, 390, '700 24px "Space Grotesk", sans-serif');
+  ctx.fillStyle = '#f0f4ff';
+  ctx.font = `700 24px "Space Grotesk", sans-serif`;
+  titleLines.forEach((line, i) => ctx.fillText(line, tx, ty + 30 + i * 32));
+
+  const afterTitle = ty + 30 + titleLines.length * 32 + 20;
+
+  // Score text: e.g. 18 / 20 correct
+  ctx.fillStyle = '#4e6280';
+  ctx.font = `400 13px "Space Mono", monospace`;
+  ctx.fillText(`${score} of ${total} correct`, tx, afterTitle + 4);
+
+  // Grade label
+  const gradeColor = isHigh ? '#3ecf8e' : pct >= 60 ? '#f0c040' : '#e05a5a';
+  ctx.fillStyle = gradeColor;
+  ctx.font = `700 19px "Space Grotesk", sans-serif`;
+  ctx.fillText(grade + (isPerfect ? ' 🏆' : isHigh ? ' 🌟' : ''), tx, afterTitle + 34);
+
+  // Sigma quote
+  ctx.fillStyle = '#4e6280';
+  ctx.font = `400 13px "Space Grotesk", sans-serif`;
+  const qLines = wrapText(ctx, `"${sigmaLine}"`, 380, `400 13px "Space Grotesk", sans-serif`);
+  qLines.forEach((line, i) => ctx.fillText(line, tx, afterTitle + 68 + i * 20));
+
+  // Divider line
+  ctx.strokeStyle = 'rgba(255,255,255,.06)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(tx, H - 60);
+  ctx.lineTo(460, H - 60);
+  ctx.stroke();
+
+  // Bottom: platform URL
+  ctx.fillStyle = '#253c5e';
+  ctx.font = `400 11px "Space Mono", monospace`;
+  ctx.fillText(window.location.origin + window.location.pathname, tx, H - 36);
+
+  // Student name bottom left
+  if (studentName && studentName !== 'Anonymous') {
+    ctx.fillStyle = '#c9a227';
+    ctx.font = `600 13px "Space Grotesk", sans-serif`;
+    ctx.fillText(studentName, tx, H - 16);
+  }
+
+  // ── RIGHT SIDE — Score ring ───────────────────────────────────
+  const cx = W * 0.72, cy = H * 0.5, R = 105;
+
+  // Outer glow ring
+  const ringGlow = ctx.createRadialGradient(cx, cy, R - 12, cx, cy, R + 12);
+  ringGlow.addColorStop(0, hexToRgba(gradeColor, 0.3));
+  ringGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = ringGlow;
+  ctx.beginPath(); ctx.arc(cx, cy, R + 12, 0, Math.PI * 2); ctx.fill();
+
+  // Track circle
+  ctx.strokeStyle = 'rgba(255,255,255,.05)';
+  ctx.lineWidth = 10;
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+
+  // Score arc
+  const startAngle = -Math.PI / 2;
+  const endAngle   = startAngle + (Number(pct) / 100) * Math.PI * 2;
+  const arcGrd = ctx.createLinearGradient(cx - R, cy, cx + R, cy);
+  arcGrd.addColorStop(0, gradeColor);
+  arcGrd.addColorStop(1, isHigh ? '#7de8b5' : '#f0c040');
+  ctx.strokeStyle = arcGrd;
+  ctx.lineWidth = 10;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, startAngle, endAngle);
+  ctx.stroke();
+
+  // Inner circle fill
+  ctx.fillStyle = 'rgba(13,17,32,.8)';
+  ctx.beginPath(); ctx.arc(cx, cy, R - 15, 0, Math.PI * 2); ctx.fill();
+
+  // Percentage text
+  ctx.textAlign = 'center';
+  ctx.fillStyle = isHigh ? '#3ecf8e' : pct >= 60 ? '#f0c040' : '#e05a5a';
+  ctx.font = `700 58px "Space Grotesk", sans-serif`;
+  ctx.fillText(`${pct}%`, cx, cy + 12);
+  ctx.fillStyle = '#4e6280';
+  ctx.font = `400 12px "Space Mono", monospace`;
+  ctx.fillText('SCORE', cx, cy + 36);
+  ctx.textAlign = 'left';
+
+  // ── Decorative corner dots ────────────────────────────────────
+  [[W - 48, H - 48], [W - 30, H - 48], [W - 48, H - 30]].forEach(([x, y]) => {
+    ctx.fillStyle = 'rgba(201,162,39,.2)';
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Show modal
+  showShareModal(canvas, pct, quizTitle);
 }
+
+// ── Helpers ──────────────────────────────────────────────────────
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function wrapText(ctx, text, maxW, font) {
+  ctx.font = font;
+  const words = text.split(' ');
+  const lines = [];
+  let current = '';
+  words.forEach(word => {
+    const test = current ? current + ' ' + word : word;
+    if (ctx.measureText(test).width > maxW && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
+  });
+  if (current) lines.push(current);
+  return lines;
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── Share Modal ──────────────────────────────────────────────────
+function showShareModal(canvas, pct, quizTitle) {
+  // Remove any existing modal
+  const old = document.getElementById('share-modal-bg');
+  if (old) old.remove();
+
+  const bg = document.createElement('div');
+  bg.id = 'share-modal-bg';
+  bg.className = 'share-modal-bg';
+  bg.onclick = e => { if(e.target===bg) bg.remove(); };
+
+  const modal = document.createElement('div');
+  modal.className = 'share-modal';
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem';
+  hdr.innerHTML = `
+    <div>
+      <div style="font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:.2rem">Share Your Result</div>
+      <div style="font-size:.9rem;color:var(--white);font-weight:600">Your result card is ready</div>
+    </div>
+    <button onclick="document.getElementById('share-modal-bg').remove()"
+      style="background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;width:32px;height:32px;color:var(--txt-m);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>`;
+
+  // Canvas preview
+  const wrap = document.createElement('div');
+  wrap.className = 'share-canvas-wrap';
+
+  // Animate the canvas in
+  canvas.style.cssText = 'display:block;width:100%;height:auto;opacity:0;transform:scale(.97);transition:all .35s cubic-bezier(.16,1,.3,1)';
+  wrap.appendChild(canvas);
+
+  // Actions
+  const actions = document.createElement('div');
+  actions.className = 'share-actions';
+  actions.innerHTML = `
+    <button class="btn btn-gold" id="sm-download">⬇ Save Image</button>
+    <button class="btn btn-ghost" id="sm-share">📤 Share</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('share-modal-bg').remove()">Close</button>`;
+
+  modal.appendChild(hdr);
+  modal.appendChild(wrap);
+  modal.appendChild(actions);
+  bg.appendChild(modal);
+  document.body.appendChild(bg);
+
+  // Trigger animation on next frame
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      canvas.style.opacity = '1';
+      canvas.style.transform = 'scale(1)';
+    });
+  });
+
+  // Download
+  document.getElementById('sm-download').onclick = () => {
+    const link = document.createElement('a');
+    link.download = `mathlab-result-${pct}pct.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast('Image saved!', 'ok');
+  };
+
+  // Share via Web Share API (mobile) or clipboard fallback
+  document.getElementById('sm-share').onclick = async () => {
+    const shareText = `I scored ${pct}% on "${quizTitle}" 🎓 — MathLab IQube by Arman Teaches Math`;
+    const shareUrl  = window.location.origin + window.location.pathname;
+
+    // Try sharing the image blob (works on Android/iOS Chrome)
+    try {
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      const file = new File([blob], 'mathlab-result.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ title: 'MathLab IQube Result', text: shareText, url: shareUrl, files: [file] });
+        return;
+      }
+    } catch(_) {}
+
+    // Fallback: share text + URL only
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'MathLab IQube Result', text: shareText, url: shareUrl });
+        return;
+      }
+    } catch(_) {}
+
+    // Final fallback: copy text to clipboard
+    navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
+      .then(() => toast('Copied to clipboard!', 'ok'))
+      .catch(() => toast('Share: ' + shareText));
+  };
+}
+
 
 
 // ════════════════════════════════════════════════════════════════
