@@ -760,6 +760,7 @@ function navBar() {
 }
 function hasLogo() { return LOGO_URL && !LOGO_URL.includes('YOUR_USERNAME'); }
 function logoImg(cls='') { return hasLogo() ? `<img src="https://${LOGO_URL}" class="${cls}" alt="MathLab IQube" onerror="this.style.display='none'">` : `<svg viewBox="0 0 48 48" fill="none"><path d="M8 14l16 12 16-12" stroke="#c9a227" stroke-width="4.5" stroke-linecap="round"/><path d="M8 27l16 12 16-12" stroke="#c9a227" stroke-width="4.5" stroke-linecap="round"/></svg>`; }
+function adminLogout() {
   A.adminPw=''; sessionStorage.removeItem('ml_pw');
   navigate('/home'); toast('Logged out');
 }
@@ -772,14 +773,7 @@ function showSetup() {
   $('app').innerHTML=`<div class="main"><div class="setup-wrap">
     <div class="card">
       <div style="text-align:center;margin-bottom:2rem">
-        <div class="portal-logo" style="margin-bottom:1.2rem">
-          ${LOGO_URL && !LOGO_URL.includes('YOUR_LOGO')
-            ? `<img src="${LOGO_URL}" alt="MathLab IQube Logo">`
-            : `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 14l16 12 16-12" stroke="#c9a227" stroke-width="4" stroke-linecap="round"/>
-                <path d="M8 26l16 12 16-12" stroke="#c9a227" stroke-width="4" stroke-linecap="round"/>
-              </svg>`}
-        </div>
+        <div class="portal-logo" style="margin-bottom:1.2rem">${logoImg()}</div>
         <div class="t-label" style="margin-bottom:.5rem">Backend Configuration</div>
         <h2 class="t-serif t-white" style="font-size:1.5rem">MathLab IQube</h2>
         <p style="color:var(--txt-m);font-size:.88rem;margin-top:.5rem">Paste your Google Apps Script Web App URL</p>
